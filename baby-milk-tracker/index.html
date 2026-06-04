@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baby Milk Tracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fef6f0;
+      color: #3a2e2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #f9a8d4, #fcd7a0);
+      padding: 20px 24px 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #7c3a5e;
+      letter-spacing: -0.3px;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: #9e6680;
+      margin-top: 2px;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 14px 24px;
+      background: #fff;
+      border-bottom: 1px solid #f0e0d6;
+    }
+
+    .date-nav button {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: #c27a99;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+
+    .date-nav button:hover { background: #fde8f0; }
+
+    #current-date {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #7c3a5e;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1.5px solid #fde8f0;
+    }
+
+    .stat-card .value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #d6548a;
+      line-height: 1;
+    }
+
+    .stat-card .unit {
+      font-size: 1rem;
+      color: #c27a99;
+      font-weight: 600;
+    }
+
+    .stat-card .label {
+      font-size: 0.78rem;
+      color: #a07080;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .log-form {
+      margin: 0 16px 16px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1.5px solid #fde8f0;
+    }
+
+    .log-form h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #7c3a5e;
+      margin-bottom: 14px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #9e6680;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .field input {
+      border: 1.5px solid #f0d0e0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      color: #3a2e2e;
+      background: #fef6f0;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    .field input:focus { border-color: #d6548a; background: #fff; }
+
+    .btn-log {
+      background: linear-gradient(135deg, #e8729c, #d6548a);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 3px 8px rgba(214, 84, 138, 0.35);
+      transition: transform 0.1s, box-shadow 0.1s;
+      height: 42px;
+    }
+
+    .btn-log:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(214,84,138,0.4); }
+    .btn-log:active { transform: translateY(0); }
+
+    .note-field {
+      margin-top: 10px;
+    }
+
+    .note-field input {
+      width: 100%;
+    }
+
+    .history {
+      margin: 0 16px 24px;
+    }
+
+    .history h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #7c3a5e;
+      margin-bottom: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #c09aaa;
+      font-size: 0.9rem;
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; }
+
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feed-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      border: 1.5px solid #fde8f0;
+      position: relative;
+    }
+
+    .feed-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .feed-info { flex: 1; min-width: 0; }
+
+    .feed-oz {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #d6548a;
+    }
+
+    .feed-time {
+      font-size: 0.78rem;
+      color: #a07080;
+      margin-top: 1px;
+    }
+
+    .feed-note {
+      font-size: 0.82rem;
+      color: #7c6070;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .feed-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: #fde8f0;
+      color: #c27a99;
+      border-radius: 20px;
+      padding: 2px 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #d0a0b0;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-delete:hover { color: #e05080; background: #fde8f0; }
+
+    .clear-day-btn {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      background: none;
+      border: 1.5px solid #f0d0e0;
+      border-radius: 10px;
+      padding: 9px;
+      font-size: 0.85rem;
+      color: #c27a99;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .clear-day-btn:hover { background: #fde8f0; color: #d6548a; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #3a2e2e;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 400px) {
+      .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+      .stat-card .value { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🍼 Baby Milk Tracker</h1>
+  <p>Log every feeding, track every ounce</p>
+</header>
+
+<div class="date-nav">
+  <button id="prev-day" title="Previous day">&#8249;</button>
+  <span id="current-date"></span>
+  <button id="next-day" title="Next day">&#8250;</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="value" id="stat-count">0</div>
+    <div class="label">Feedings today</div>
+  </div>
+  <div class="stat-card">
+    <div><span class="value" id="stat-oz">0</span><span class="unit"> oz</span></div>
+    <div class="label">Total consumed</div>
+  </div>
+</div>
+
+<div class="log-form">
+  <h2>Log a Feeding</h2>
+  <div class="form-row">
+    <div class="field">
+      <label for="oz-input">Amount (oz)</label>
+      <input id="oz-input" type="number" min="0.5" max="16" step="0.5" placeholder="e.g. 4" />
+    </div>
+    <div class="field" style="max-width:130px">
+      <label for="time-input">Time</label>
+      <input id="time-input" type="time" />
+    </div>
+    <button class="btn-log" id="log-btn">+ Log</button>
+  </div>
+  <div class="note-field field">
+    <label for="note-input">Note (optional)</label>
+    <input id="note-input" type="text" placeholder="e.g. fussy before, slept after" maxlength="100" />
+  </div>
+</div>
+
+<div class="history">
+  <h2>Feeding Log</h2>
+  <div id="feed-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'baby_milk_tracker_v1';
+  let viewDate = todayStr();
+
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function nowTimeStr() {
+    const now = new Date();
+    return now.toTimeString().slice(0, 5);
+  }
+
+  function loadAll() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  }
+
+  function saveAll(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function getEntries(dateStr) {
+    const all = loadAll();
+    return all[dateStr] || [];
+  }
+
+  function saveEntries(dateStr, entries) {
+    const all = loadAll();
+    all[dateStr] = entries;
+    saveAll(all);
+  }
+
+  function formatDate(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    if (date.getTime() === today.getTime()) return 'Today';
+    if (date.getTime() === yesterday.getTime()) return 'Yesterday';
+    return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function formatTime(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  function render() {
+    document.getElementById('current-date').textContent = formatDate(viewDate);
+
+    const entries = getEntries(viewDate);
+    const totalOz = entries.reduce((s, e) => s + e.oz, 0);
+
+    document.getElementById('stat-count').textContent = entries.length;
+    document.getElementById('stat-oz').textContent = totalOz % 1 === 0 ? totalOz : totalOz.toFixed(1);
+
+    const listEl = document.getElementById('feed-list');
+
+    if (entries.length === 0) {
+      listEl.innerHTML = `<div class="empty-state"><div class="icon">🍼</div><div>No feedings logged yet for this day.</div></div>`;
+      return;
+    }
+
+    const sorted = [...entries].sort((a, b) => b.timestamp - a.timestamp);
+
+    listEl.innerHTML = sorted.map((e, idx) => `
+      <div class="feed-item">
+        <span class="feed-icon">🍼</span>
+        <div class="feed-info">
+          <div class="feed-oz">${e.oz % 1 === 0 ? e.oz : e.oz.toFixed(1)} oz</div>
+          <div class="feed-time">${formatTime(e.time)}</div>
+          ${e.note ? `<div class="feed-note">${escHtml(e.note)}</div>` : ''}
+        </div>
+        <span class="feed-num">#${entries.length - entries.indexOf(e)}</span>
+        <button class="btn-delete" data-id="${e.id}" title="Delete">&#10005;</button>
+      </div>
+    `).join('');
+
+    listEl.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => deleteEntry(btn.dataset.id));
+    });
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'clear-day-btn';
+    clearBtn.textContent = 'Clear all for this day';
+    clearBtn.addEventListener('click', clearDay);
+    listEl.appendChild(clearBtn);
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function logFeeding() {
+    const ozVal = parseFloat(document.getElementById('oz-input').value);
+    if (isNaN(ozVal) || ozVal <= 0) { showToast('Please enter a valid oz amount'); return; }
+
+    const timeVal = document.getElementById('time-input').value || nowTimeStr();
+    const noteVal = document.getElementById('note-input').value.trim();
+
+    const entry = {
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      oz: ozVal,
+      time: timeVal,
+      note: noteVal,
+    };
+
+    const entries = getEntries(viewDate);
+    entries.push(entry);
+    saveEntries(viewDate, entries);
+
+    document.getElementById('oz-input').value = '';
+    document.getElementById('note-input').value = '';
+    document.getElementById('time-input').value = nowTimeStr();
+
+    render();
+    showToast(`Logged ${ozVal % 1 === 0 ? ozVal : ozVal.toFixed(1)} oz`);
+  }
+
+  function deleteEntry(id) {
+    let entries = getEntries(viewDate);
+    entries = entries.filter(e => e.id !== id);
+    saveEntries(viewDate, entries);
+    render();
+    showToast('Entry removed');
+  }
+
+  function clearDay() {
+    if (!confirm('Remove all feedings for this day?')) return;
+    saveEntries(viewDate, []);
+    render();
+    showToast('Day cleared');
+  }
+
+  function changeDay(delta) {
+    const [y, m, d] = viewDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() + delta);
+    viewDate = date.toISOString().slice(0, 10);
+    render();
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+  }
+
+  document.getElementById('log-btn').addEventListener('click', logFeeding);
+  document.getElementById('oz-input').addEventListener('keydown', e => { if (e.key === 'Enter') logFeeding(); });
+  document.getElementById('note-input').addEventListener('keydown', e => { if (e.key === 'Enter') logFeeding(); });
+  document.getElementById('prev-day').addEventListener('click', () => changeDay(-1));
+  document.getElementById('next-day').addEventListener('click', () => changeDay(1));
+
+  document.getElementById('time-input').value = nowTimeStr();
+  render();
+</script>
+</body>
+</html>
